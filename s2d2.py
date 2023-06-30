@@ -92,8 +92,8 @@ class StableDiffusionImageGenerator:
         self.pipe.safety_checker = None
         self.pipe_i2i.safety_checker = None
 
-        self.pipe_compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder)
-        self.pipe_i2i_compel = Compel(tokenizer=self.pipe_i2i.tokenizer, text_encoder=self.pipe_i2i.text_encoder)
+        self.pipe_compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder, truncate_long_prompts=False)
+        self.pipe_i2i_compel = Compel(tokenizer=self.pipe_i2i.tokenizer, text_encoder=self.pipe_i2i.text_encoder, truncate_long_prompts=False)
         return
     
     
@@ -135,7 +135,7 @@ class StableDiffusionImageGenerator:
 
         prompt_embeds = self.pipe_compel(prompt)
         negative_prompt_embeds = self.pipe_compel(negative_prompt)
-        # [prompt_embeds, negative_prompt_embeds] = self.pipe_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
+        [prompt_embeds, negative_prompt_embeds] = self.pipe_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
         
         with torch.no_grad():
             args = dict(
@@ -187,7 +187,7 @@ class StableDiffusionImageGenerator:
 
         prompt_embeds = self.pipe_i2i_compel(prompt)
         negative_prompt_embeds = self.pipe_i2i_compel(negative_prompt)
-        # [prompt_embeds, negative_prompt_embeds] = self.pipe_i2i_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
+        [prompt_embeds, negative_prompt_embeds] = self.pipe_i2i_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
               
         with torch.no_grad():
             latents = self.pipe_i2i(
