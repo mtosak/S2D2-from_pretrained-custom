@@ -3,3 +3,4 @@ safetensors
 diffusers
 xformers
 controlnet_aux
+compel
