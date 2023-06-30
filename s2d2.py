@@ -15,14 +15,13 @@ from diffusers.utils import numpy_to_pil
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
 from diffusers.models import AutoencoderKL
 
-from compel import Compel
-
 import torch
 import datetime
 from PIL import Image
 import numpy as np
 
 from lora import load_safetensors_lora
+from lpw_stable_diffusion import get_prompts_with_weights
 
 SCHEDULERS = {
     "unipc": diffusers.schedulers.UniPCMultistepScheduler,
@@ -91,9 +90,6 @@ class StableDiffusionImageGenerator:
         
         self.pipe.safety_checker = None
         self.pipe_i2i.safety_checker = None
-
-        self.pipe_compel = Compel(tokenizer=self.pipe.tokenizer, text_encoder=self.pipe.text_encoder, truncate_long_prompts=False)
-        self.pipe_i2i_compel = Compel(tokenizer=self.pipe_i2i.tokenizer, text_encoder=self.pipe_i2i.text_encoder, truncate_long_prompts=False)
         return
     
     
@@ -133,9 +129,7 @@ class StableDiffusionImageGenerator:
         self.pipe.scheduler.set_timesteps(num_inference_steps, self.device)
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
-        prompt_embeds = self.pipe_compel(prompt)
-        negative_prompt_embeds = self.pipe_compel(negative_prompt)
-        [prompt_embeds, negative_prompt_embeds] = self.pipe_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
+        prompt_embeds, negative_prompt_embeds = get_prompts_with_weights(self.pipe, prompt_embeds, negative_prompt_embeds)
         
         with torch.no_grad():
             args = dict(
@@ -185,9 +179,8 @@ class StableDiffusionImageGenerator:
         self.pipe_i2i.scheduler.set_timesteps(num_inference_steps, self.device)
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
-        prompt_embeds = self.pipe_i2i_compel(prompt)
-        negative_prompt_embeds = self.pipe_i2i_compel(negative_prompt)
-        [prompt_embeds, negative_prompt_embeds] = self.pipe_i2i_compel.pad_conditioning_tensors_to_same_length([prompt_embeds, negative_prompt_embeds])
+
+        prompt_embeds, negative_prompt_embeds = get_prompts_with_weights(self.pipe_i2i, prompt_embeds, negative_prompt_embeds)
               
         with torch.no_grad():
             latents = self.pipe_i2i(
