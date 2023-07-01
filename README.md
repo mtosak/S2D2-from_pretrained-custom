@@ -158,3 +158,4 @@ Stepwise upscaling between the initial resolution and the target resolution.
 - [AUTOMATIC1111/stable-diffusion-webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
 - [ddPn08/Radiata](https://github.com/ddPn08/Radiata)
 - [huggingface/diffusers/blob/main/scripts/convert_lora_safetensor_to_diffusers.py](https://github.com/huggingface/diffusers/blob/main/scripts/convert_lora_safetensor_to_diffusers.py)
+- [huggingface/diffusers/blob/main/examples/community/lpw_stable_diffusion.py](https://github.com/huggingface/diffusers/blob/main/examples/community/lpw_stable_diffusion.py)
