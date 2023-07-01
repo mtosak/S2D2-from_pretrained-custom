@@ -21,6 +21,7 @@ from PIL import Image
 import numpy as np
 
 from lora import load_safetensors_lora
+from lpw_stable_diffusion import get_weighted_text_embeddings
 
 SCHEDULERS = {
     "unipc": diffusers.schedulers.UniPCMultistepScheduler,
@@ -69,7 +70,7 @@ class StableDiffusionImageGenerator:
 
         if controlnet_path is not None:
           pipe_args.setdefault("controlnet", ControlNetModel.from_pretrained(controlnet_path, torch_dtype=dtype))
-
+              
         self.device = torch.device(device)
 
         # t2i
@@ -80,12 +81,13 @@ class StableDiffusionImageGenerator:
 
         # i2i
         self.pipe_i2i = StableDiffusionImg2ImgPipeline.from_pretrained(sd_model_path, **pipe_i2i_args).to(device)
-              
+        
         if is_enable_xformers:
           self.pipe.enable_xformers_memory_efficient_attention()
           self.pipe.enable_attention_slicing()
           self.pipe_i2i.enable_xformers_memory_efficient_attention()
           self.pipe_i2i.enable_attention_slicing()
+        
         self.pipe.safety_checker = None
         self.pipe_i2i.safety_checker = None
         return
@@ -127,10 +129,12 @@ class StableDiffusionImageGenerator:
         self.pipe.scheduler.set_timesteps(num_inference_steps, self.device)
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
+        prompt_embeds, negative_prompt_embeds = get_weighted_text_embeddings(self.pipe, prompt, negative_prompt)
+              
         with torch.no_grad():
             args = dict(
-              prompt=prompt, 
-              negative_prompt=negative_prompt,
+              prompt_embeds=prompt_embeds, 
+              negative_prompt_embeds=negative_prompt_embeds,
               num_inference_steps=num_inference_steps, 
               generator=torch.manual_seed(seed),
               guidance_scale=guidance_scale,
@@ -175,10 +179,13 @@ class StableDiffusionImageGenerator:
         self.pipe_i2i.scheduler.set_timesteps(num_inference_steps, self.device)
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
+
+        prompt_embeds, negative_prompt_embeds = get_weighted_text_embeddings(self.pipe_i2i, prompt, negative_prompt)
+              
         with torch.no_grad():
             latents = self.pipe_i2i(
-                prompt=prompt, 
-                negative_prompt=negative_prompt,
+                prompt_embeds=prompt_embeds, 
+                negative_prompt_embeds=negative_prompt_embeds,
                 image=image,
                 num_inference_steps=num_inference_steps, 
                 strength=denoising_strength,
