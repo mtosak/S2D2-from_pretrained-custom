@@ -21,7 +21,7 @@ from PIL import Image
 import numpy as np
 
 from lora import load_safetensors_lora
-from lpw_stable_diffusion import get_prompts_with_weights
+from lpw_stable_diffusion import get_weighted_text_embeddings
 
 SCHEDULERS = {
     "unipc": diffusers.schedulers.UniPCMultistepScheduler,
@@ -129,8 +129,8 @@ class StableDiffusionImageGenerator:
         self.pipe.scheduler.set_timesteps(num_inference_steps, self.device)
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
-        prompt_embeds, negative_prompt_embeds = get_prompts_with_weights(self.pipe, prompt_embeds, negative_prompt_embeds)
-        
+        prompt_embeds, negative_prompt_embeds = get_weighted_text_embeddings(self.pipe, prompt, negative_prompt)
+              
         with torch.no_grad():
             args = dict(
               prompt_embeds=prompt_embeds, 
@@ -180,7 +180,7 @@ class StableDiffusionImageGenerator:
         seed = random.randint(1, 1000000000) if seed == -1 else seed
 
 
-        prompt_embeds, negative_prompt_embeds = get_prompts_with_weights(self.pipe_i2i, prompt_embeds, negative_prompt_embeds)
+        prompt_embeds, negative_prompt_embeds = get_weighted_text_embeddings(self.pipe_i2i, prompt, negative_prompt)
               
         with torch.no_grad():
             latents = self.pipe_i2i(
