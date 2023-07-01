@@ -10,10 +10,10 @@ Diffusers-based simple generating image module with upscaling features for jupyt
 - ☑ LoRA
 - ☑ Controlnet
 - ☒ Multi-batch generation (Only single generation is supported)
+- ☑ Usable Long-Prompt-Weighting without loading custom pipeline
 
 ### Schedule
 - Add Multi-ControlNet
-- Add Weighting Prompts (compel)
 
 # Getting Started
 ## 1. Install libraries
@@ -40,6 +40,7 @@ from s2d2 import StableDiffusionImageGenerator
 model_path = "/content/drive/MyDrive/Model/fantasticmix"
 
 # Initialize Generator
+# (You can use "Long Prompt" without lpw_stable_diffusion)
 generator = StableDiffusionImageGenerator(
   model_path,
   vae_path=vae_path,
