@@ -54,7 +54,7 @@ class StableDiffusionImageGenerator:
             self,
             sd_model_path: str,
             vae_path: str=None,
-            controlnets: none,
+            controlnets=None,
             controlnet_path: str=None,
             device: str="cuda",
             dtype: torch.dtype=torch.float16,
@@ -78,7 +78,7 @@ class StableDiffusionImageGenerator:
         self.device = torch.device(device)
 
         # t2i
-        if controlnet_path is None:
+        if controlnet_path is None and controlnets is None :
           self.pipe = StableDiffusionPipeline.from_pretrained(sd_model_path, **pipe_args).to(device)
         else:
           self.pipe = StableDiffusionControlNetPipeline.from_pretrained(sd_model_path, **pipe_args).to(device)
