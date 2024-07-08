@@ -54,6 +54,7 @@ class StableDiffusionImageGenerator:
             self,
             sd_model_path: str,
             vae_path: str=None,
+            controlnets=None,
             controlnet_path: str=None,
             device: str="cuda",
             dtype: torch.dtype=torch.float16,
@@ -68,13 +69,16 @@ class StableDiffusionImageGenerator:
           pipe_args.setdefault("vae", AutoencoderKL.from_pretrained(vae_path, torch_dtype=dtype))
           pipe_i2i_args.setdefault("vae", AutoencoderKL.from_pretrained(vae_path, torch_dtype=dtype))
 
+        if controlnets is not None:
+          pipe_args.setdefault("controlnet", controlnets)          
+              
         if controlnet_path is not None:
           pipe_args.setdefault("controlnet", ControlNetModel.from_pretrained(controlnet_path, torch_dtype=dtype))
               
         self.device = torch.device(device)
 
         # t2i
-        if controlnet_path is None:
+        if controlnet_path is None and controlnets is None :
           self.pipe = StableDiffusionPipeline.from_pretrained(sd_model_path, **pipe_args).to(device)
         else:
           self.pipe = StableDiffusionControlNetPipeline.from_pretrained(sd_model_path, **pipe_args).to(device)
